@@ -12,3 +12,20 @@ const storage = multer.diskStorage({
 export const upload = multer({
   storage,
 });
+
+/*
+        Multer  →  fs  →  Cloudinary
+
+            Browser uploads file
+            ↓
+            Multer reconstructs file
+            ↓
+            Temp file saved on disk
+            ↓
+            Cloudinary uploads file
+            ↓
+            fs deletes temp file
+            ↓
+            Response sent to user
+
+*/

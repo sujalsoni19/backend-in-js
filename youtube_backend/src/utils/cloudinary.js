@@ -7,6 +7,9 @@ cloudinary.config({
   api_secret:process.env.CLOUDINARY_API_SECRET
 });
 
+//Temporary storage exists because the server must fully receive and verify a file before it can send it to Cloudinary.
+//Files are sent in chunks so the internet can send large data reliably, safely, and recover from failures.
+
 const uploadOnCloudinary = async(localFilePath) => {
     try {
         if(!localFilePath) return null
@@ -16,6 +19,8 @@ const uploadOnCloudinary = async(localFilePath) => {
             resource_type:"auto"
         })
         console.log("file is uploaded on cloudinary",response.url);
+
+        fs.unlinkSync(localFilePath); // cleanup after success
         return response;
     } catch (error) {
         fs.unlinkSync(localFilePath)//REMOVE THE LOCALLY SAVED TEMP FILE AS THE UPLOAD OPERATION GOT FAILED

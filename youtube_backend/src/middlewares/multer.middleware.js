@@ -29,3 +29,6 @@ export const upload = multer({
             Response sent to user
 
 */
+
+//next() is required because Express pauses execution inside middleware(either next or response->request ended)
+// and needs an explicit signal to continue processing the request, regardless of how many middlewares exist.

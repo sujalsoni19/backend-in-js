@@ -24,6 +24,8 @@ const uploadOnCloudinary = async(localFilePath) => {
         return response;
     } catch (error) {
         fs.unlinkSync(localFilePath)//REMOVE THE LOCALLY SAVED TEMP FILE AS THE UPLOAD OPERATION GOT FAILED
+        return null
     }
 }
 
+export {uploadOnCloudinary}

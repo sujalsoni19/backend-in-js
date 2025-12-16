@@ -16,7 +16,7 @@ const registerUser = asyncHandler(async (req, res) => {
   // return res
 
   const { fullName, email, username, password } = req.body;
-  console.log(req.body);
+//   console.log(req.body);
 
   // if(fullName === ""){
   //     throw new ApiError(400,"fullname is required")
@@ -54,7 +54,7 @@ const registerUser = asyncHandler(async (req, res) => {
     : null;
 
   if (!avatar) {
-    throw new Apierror(400, "Avatar file is required");
+    throw new Apierror(400, "Avatar upload failed");
   }
 
   const user = await User.create({

@@ -3,7 +3,15 @@ import { Apierror } from "../utils/Apierror.js";
 import { Apiresponse } from "../utils/Apiresponse.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import {
+  uploadOnCloudinary,
+  deleteFromCloudinary,
+} from "../utils/cloudinary.js";
+
+const normalizeImage = (file) => ({
+  url: file?.secure_url,
+  publicId: file?.public_id,
+});
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -75,8 +83,8 @@ const registerUser = asyncHandler(async (req, res) => {
 
   const user = await User.create({
     fullName,
-    avatar: avatar.url,
-    coverImage: coverImage?.url || "",
+    avatar: normalizeImage(avatar),
+    coverImage: coverImage ? normalizeImage(coverImage) : "",
     email,
     password,
     username: username.toLowerCase(),
@@ -284,7 +292,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new Apiresponse(200, user, "Accout details changed successfully"));
+    .json(new Apiresponse(200, user, "Account details changed successfully"));
 });
 
 // file should be updated separately
@@ -302,15 +310,19 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     throw new Apierror(400, "Error while uploading avatar");
   }
 
-  const user = await User.findByIdAndUpdate(
-    req.user?._id,
-    {
-      $set: {
-        avatar: avatar.url,
-      },
-    },
-    { new: true }
-  ).select("-password -refreshToken");
+  const user = await User.findById(req.user?._id);
+
+  const oldPublicId = user.avatar?.publicId;
+
+  // Update
+  user.avatar = normalizeImage(avatar);
+  await user.save({ validateBeforeSave: false });
+
+  // Delete old avatar AFTER successful save
+  if (oldPublicId) {
+    const res1 = await deleteFromCloudinary(oldPublicId);
+    console.log(res1);
+  }
 
   return res
     .status(200)
@@ -330,15 +342,19 @@ const updateUsercoverimg = asyncHandler(async (req, res) => {
     throw new Apierror(400, "Error while uploading coverImage");
   }
 
-  const user = await User.findByIdAndUpdate(
-    req.user?._id,
-    {
-      $set: {
-        coverImage: coverImage.url,
-      },
-    },
-    { new: true }
-  ).select("-password -refreshToken");
+  const user = await User.findById(req.user?._id);
+
+  const oldPublicId = user.coverImage?.publicId;
+
+  // Update
+  user.avatar = normalizeImage(coverImage);
+  await user.save({ validateBeforeSave: false });
+
+  // Delete old coverImage AFTER successful save
+  if (oldPublicId) {
+    const res1 = await deleteFromCloudinary(oldPublicId);
+    console.log(res1);
+  }
 
   return res
     .status(200)

@@ -9,7 +9,7 @@ import {
   deleteFromCloudinary,
 } from "../utils/cloudinary.js";
 
-const normalizeImage = (file) => ({
+export const normalizeImage = (file) => ({
   url: file?.secure_url,
   publicId: file?.public_id,
 });

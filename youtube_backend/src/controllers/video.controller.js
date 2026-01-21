@@ -4,6 +4,7 @@ import { Apiresponse } from "../utils/Apiresponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { normalizeImage } from "./user.controller.js";
+import mongoose from "mongoose";
 
 const postaVideo = asyncHandler(async (req, res) => {
   const { title, description, isPublished } = req.body;
@@ -58,4 +59,67 @@ const postaVideo = asyncHandler(async (req, res) => {
     .json(new Apiresponse(200, uploadedVideo, "Video uploaded successfully"));
 });
 
-export { postaVideo }
+const getAllVideos = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+
+  const allVideos = Video.aggregate([
+    {
+      $match: { isPublished: true },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              fullName: 1,
+              avatar: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        owner: { $first: "$owner" },
+      },
+    },
+    { $sort: { createdAt: -1 } },
+  ]);
+
+  const result = await Video.aggregatePaginate(allVideos, {
+    page: Number(page),
+    limit: Number(limit),
+  });
+
+  return res
+    .status(200)
+    .json(new Apiresponse(200, result, "All videos fetched successfully"));
+});
+
+const getVideoById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new Apierror(400, "Invalid video id");
+  }
+
+  const video = await Video.findById(id).populate(
+    "owner",
+    "username fullName avatar"
+  );
+
+  if (!video) {
+    throw new Apierror(404, "Video not found");
+  }
+
+  return res
+    .status(200)
+    .json(new Apiresponse(200, video, "Video fetched successfully"));
+});
+
+export { postaVideo, getAllVideos, getVideoById };

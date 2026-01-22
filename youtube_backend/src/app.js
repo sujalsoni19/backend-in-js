@@ -36,6 +36,11 @@ import tweetRouter from "./routes/tweet.route.js"
 app.use("/api/v1/tweets",tweetRouter)
 
 
+import commentRouter from "./routes/comment.route.js"
+
+app.use("/api/v1/videos/:videoId/comments", commentRouter);
+
+
 
 
 

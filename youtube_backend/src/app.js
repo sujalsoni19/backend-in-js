@@ -41,6 +41,11 @@ import commentRouter from "./routes/comment.route.js"
 app.use("/api/v1/videos/:videoId/comments", commentRouter);
 
 
+import playlistRouter from "./routes/playlist.route.js"
+
+app.use("/api/v1/playlists", playlistRouter);
+
+
 
 
 

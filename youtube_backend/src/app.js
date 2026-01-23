@@ -51,4 +51,9 @@ import subscriptionRouter from "./routes/subscription.route.js";
 
 app.use("/api/v1/subscriptions",subscriptionRouter);
 
+
+import dashboardRouter from "./routes/dashboard.route.js"
+
+app.use("/api/v1/dashboard", dashboardRouter)
+
 export { app };

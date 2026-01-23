@@ -3,6 +3,8 @@ import {
   postaVideo,
   getAllVideos,
   getVideoById,
+  addToWatchHistory,
+  getAllVideosbyUser,
   updateDetails,
   updateThumbnail,
   changePublishToggle,
@@ -30,9 +32,11 @@ router.route("/post-video").post(
 );
 router.route("/all-videos").get(getAllVideos);
 
-router.route("/video/:id").get(getVideoById);
+router.route("/video/:id").get(addToWatchHistory, getVideoById);
 
 router.route("/video/:id/details").patch(updateDetails);
+
+router.route("/video/user/:userId").get(getAllVideosbyUser)
 
 router
   .route("/video/:id/thumbnail")

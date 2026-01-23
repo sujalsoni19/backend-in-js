@@ -2,6 +2,7 @@ import { Video } from "../models/video.model.js";
 import { Apierror } from "../utils/Apierror.js";
 import { Apiresponse } from "../utils/Apiresponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { User } from "../models/user.model.js";
 import {
   deleteFromCloudinary,
   uploadOnCloudinary,
@@ -128,7 +129,6 @@ const getVideoById = asyncHandler(async (req, res) => {
     .json(new Apiresponse(200, video, "Video fetched successfully"));
 });
 
-
 const updateDetails = asyncHandler(async (req, res) => {
   const { title, description, isPublished } = req.body;
   const { id } = req.params;
@@ -231,6 +231,51 @@ const changePublishToggle = asyncHandler(async (req, res) => {
     .json(new Apiresponse(200, video, "Publish status changed successfully"));
 });
 
+const addToWatchHistory = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new Apierror(400, "Invalid video id");
+  }
+
+  // 1 Remove if already exists
+  await User.findByIdAndUpdate(req.user._id, { $pull: { watchHistory: id } });
+
+  // 2 Add to top
+  await User.findByIdAndUpdate(req.user._id, {
+    $push: {
+      watchHistory: {
+        $each: [id],
+        $position: 0,
+        $slice: 30,
+      },
+    },
+  });
+
+  next();
+});
+
+const getAllVideosbyUser = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new Apierror(400, "Inavlid user id");
+  }
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new Apierror(404, "no such user exists");
+  }
+  const videos = await Video.find({ owner: userId }).sort({ createdAt: -1 });
+
+  return res
+    .status(200)
+    .json(
+      new Apiresponse(200, videos, "all videos of user fetched successfully")
+    );
+});
+
 const deleteVideo = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
@@ -270,6 +315,8 @@ export {
   postaVideo,
   getAllVideos,
   getVideoById,
+  addToWatchHistory,
+  getAllVideosbyUser,
   updateDetails,
   updateThumbnail,
   changePublishToggle,

@@ -113,10 +113,11 @@ const getVideoById = asyncHandler(async (req, res) => {
     throw new Apierror(400, "Invalid video id");
   }
 
-  const video = await Video.findById(id).populate(
-    "owner",
-    "username fullName avatar"
-  );
+  const video = await Video.findOneAndUpdate(
+    { _id: id },
+    { $inc: { views: 1 } },
+    { new: true }
+  ).populate("owner", "username fullName avatar");
 
   if (!video) {
     throw new Apierror(404, "Video not found");
@@ -126,6 +127,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     .status(200)
     .json(new Apiresponse(200, video, "Video fetched successfully"));
 });
+
 
 const updateDetails = asyncHandler(async (req, res) => {
   const { title, description, isPublished } = req.body;
